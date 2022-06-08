@@ -1,0 +1,75 @@
+Задание
+Работаем с базой данных учителей teachers.db. Для каждого из заданий требуется создать запрос, сдать надо только код запросов в текстовом файле. Для решений воспользуйтесь объединением JOIN, не используйте вложенные запросы и объединение UNION.
+
+1. Покажите информацию по потокам. В отчет выведите номер потока, название курса и дату начала занятий.
+2. Найдите общее количество учеников для каждого курса. В отчёт выведите название курса и количество учеников по всем потокам курса.
+3. Для всех учителей найдите среднюю оценку по всем проведённым потокам. В отчёт выведите идентификатор, фамилию и имя учителя, среднюю оценку по всем проведенным потокам. Важно чтобы учителя, у которых не было потоков, также попали в выборку.
+
+1.
+sqlite> SELECT
+   ...> streams.number_stream,
+   ...> courses.name AS course_name,
+   ...> streams.started_at
+   ...> FROM streams
+   ...> INNER JOIN courses
+   ...> WHERE streams.course_id = courses.id;
+number_stream  course_name             started_at
+-------------  ----------------------  ----------
+165            Linux. Рабочая станция  2020-08-18
+178            Основы Python           2020-10-02
+203            Базы данных             2020-11-12
+210            Базы данных             2020-12-03
+
+2.
+sqlite> SELECT
+   ...> courses.name AS course_name,
+   ...> SUM(students_amount) AS sum_students
+   ...> FROM streams
+   ...> JOIN courses
+   ...> ON streams.course_id = courses.id
+   ...> GROUP BY name;
+course_name             sum_students
+----------------------  ------------
+Linux. Рабочая станция  34          
+Базы данных             76          
+Основы Python           37 
+
+3.
+sqlite> SELECT
+   ...> id AS id_teacher,
+   ...> surname,
+   ...> name,
+   ...> AVG(achievements.achievements) AS average_grade
+   ...> FROM teachers
+   ...> LEFT JOIN achievements 
+   ...> ON teachers.id = achievements.teachers_id
+   ...> GROUP BY id;
+id_teacher  surname     name        average_grade
+----------  ----------  ----------  -------------
+1           Савельев    Николай     4.85         
+2           Петрова     Наталья     4.9          
+3           Малышева    Елена       4.7          
+sqlite> 
+
+
+
+4. Это дополнительное задание возможно неправильно, хоть результат должный и выдаёт.
+sqlite> SELECT
+   ...> teachers.name,
+   ...> teachers.surname,
+   ...> MIN(achievements.achievements) AS MIN_grade,
+   ...> MAX(achievements.achievements) AS MAX_grade,
+   ...> courses.name AS course_name
+   ...> FROM teachers
+   ...> LEFT JOIN achievements
+   ...> ON teachers.id = achievements.teachers_id
+   ...> LEFT JOIN streams
+   ...> ON achievements.streams_id = streams.id
+   ...> LEFT JOIN courses
+   ...> ON courses.id = streams.course_id
+   ...> GROUP BY teachers.name;
+name        surname     MIN_grade   MAX_grade   course_name           
+----------  ----------  ----------  ----------  ----------------------
+Елена       Малышева    4.7         4.7         Linux. Рабочая станция
+Наталья     Петрова     4.9         4.9         Основы Python         
+Николай     Савельев    4.8         4.9         Базы данных     
