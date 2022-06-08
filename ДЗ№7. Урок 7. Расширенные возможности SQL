@@ -1,0 +1,72 @@
+Задание
+Работаем с базой данных учителей teachers.db. Для каждого задания надо сдать только код, который выполняется для получения результата, в текстовом файле.
+
+1. Создайте представление, которое для каждого курса выводит название, номер последнего потока, дату начала обучения последнего потока и среднюю успеваемость курса по всем потокам.
+2. Удалите из базы данных всю информацию, которая относится к преподавателю с идентификатором, равным 3. Используйте транзакцию.
+3. Создайте триггер для таблицы успеваемости, который проверяет значение успеваемости на соответствие диапазону чисел от 0 до 5 включительно.
+4. Дополнительное задание. Создайте триггер для таблицы потоков, который проверяет, что дата начала потока больше текущей даты, а номер потока имеет наибольшее значение среди существующих номеров. При невыполнении условий необходимо вызвать ошибку с информативным сообщением.
+
+Задание №1
+sqlite> CREATE VIEW last_stream AS
+   ...> SELECT
+   ...> courses.name AS course_name,
+   ...> MAX(number_stream) AS last_number_stream,
+   ...> MAX(started_at) AS last_date,
+   ...> AVG(achievements.achievements) AS average_grade
+   ...> FROM streams
+   ...> JOIN achievements 
+   ...> ON streams.id = achievements.streams_id
+   ...> JOIN courses
+   ...> ON streams.course_id = courses.id
+   ...> GROUP BY courses.name;
+sqlite> SELECT * FROM last_stream;
+course_name             last_number_stream  last_date   average_grade
+----------------------  ------------------  ----------  -------------
+Linux. Рабочая станция  165                 2020-08-18  4.7          
+Базы данных             210                 2020-12-03  4.85         
+Основы Python           178                 2020-10-02  4.9  
+
+Задание №2
+sqlite> SELECT * FROM teachers;
+id          name        surname     email            
+----------  ----------  ----------  -----------------
+1           Николай     Савельев    saveliev.n@mai.ru
+2           Наталья     Петрова     petrova.n@yandex.
+3           Елена       Малышева    malisheva.e@googl
+sqlite> SELECT * FROM achievements;
+teachers_id  streams_id  achievements
+-----------  ----------  ------------
+3            1           4.7         
+2            2           4.9         
+1            3           4.8         
+1            4           4.9         
+sqlite> BEGIN TRANSACTION;
+sqlite> DELETE FROM teachers WHERE id = 3;
+sqlite> DELETE FROM achievements WHERE teachers_id = 3;
+sqlite> COMMIT;
+sqlite> SELECT * FROM teachers;
+id          name        surname     email            
+----------  ----------  ----------  -----------------
+1           Николай     Савельев    saveliev.n@mai.ru
+2           Наталья     Петрова     petrova.n@yandex.
+sqlite> SELECT * FROM achievements;
+teachers_id  streams_id  achievements
+-----------  ----------  ------------
+2            2           4.9         
+1            3           4.8         
+1            4           4.9  
+
+Задание №3
+sqlite> CREATE TRIGGER check_minmax_grades BEFORE INSERT
+   ...> ON achievements 
+   ...> BEGIN
+   ...> SELECT CASE
+   ...> WHEN
+   ...> (NEW.achievements NOT BETWEEN 0.0 AND 5.0)
+   ...> THEN
+   ...> RAISE (ABORT, 'Invalid grade for achievements!')
+   ...> END;
+   ...> END;
+sqlite> INSERT INTO achievements VALUES (2, 2, 5.2);
+Error: Invalid grade for achievements!
+
