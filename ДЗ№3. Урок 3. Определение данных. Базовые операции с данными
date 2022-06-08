@@ -1,0 +1,110 @@
+Задание
+Работаем с базой данных teachers.db. В качестве отчёта необходимо сдать команды, которые выполнялись (в текстовом файле), а также файл базы данных.
+
+1. В таблице streams переименовать столбец даты начала обучения в started_at.
+2. В таблице streams добавить столбец даты завершения обучения в finished_at.
+3. Привести данные в полное соответствие с таблицами 1-4 практического задания в методичке
+
+
+sqlite> .open teachers.db
+sqlite> .tables
+achievements  courses       streams       teachers 
+sqlite> .schema streams
+CREATE TABLE streams (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+course_id INTEGER NOT NULL,
+number_stream INTEGER NOT NULL UNIQUE,
+start_date TEXT NOT NULL,
+howmany_students INTEGER NOT NULL,
+FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+sqlite> ALTER TABLE streams RENAME COLUMN start_date TO started_at
+   ...> ;
+sqlite> .schema streams
+CREATE TABLE streams (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+course_id INTEGER NOT NULL,
+number_stream INTEGER NOT NULL UNIQUE,
+started_at TEXT NOT NULL,
+howmany_students INTEGER NOT NULL,
+FOREIGN KEY (course_id) REFERENCES courses(id)
+sqlite> ALTER TABLE streams ADD COLUMN finished_at TEXT;
+sqlite> .schema streams
+CREATE TABLE streams (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+course_id INTEGER NOT NULL,
+number_stream INTEGER NOT NULL UNIQUE,
+started_at TEXT NOT NULL,
+howmany_students INTEGER NOT NULL, finished_at TEXT,
+FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+sqlite> INSERT INTO teachers (name, surename, email) VALUES
+   ...> ('Николай', 'Савельев', 'saveliev.n@mai.ru'),
+   ...> ('Наталья', 'Петрова', 'petrova.n@yandex.ru'),
+   ...> ('Елена', 'Малышева', 'malisheva.e@google.com');
+sqlite> SELECT * FROM teachers
+   ...> ;
+1|Николай|Савельев|saveliev.n@mai.ru
+2|Наталья|Петрова|petrova.n@yandex.ru
+3|Елена|Малышева|malisheva.e@google.com
+sqlite> INSERT INTO courses (name) VALUES
+   ...> ('Базы данных'),
+   ...> ('Основы Python'),
+   ...> ('Linux. Рабочая станция');
+sqlite> SELECT * FROM courses;
+1|Базы данных
+2|Основы Python
+3|Linux. Рабочая станция
+sqlite> .header on
+sqlite> .mode column
+sqlite> SELECT * FROM courses;
+id          name       
+----------  -----------
+1           Базы данных
+2           Основы Pyth
+3           Linux. Рабо
+sqlite> .schema streams
+CREATE TABLE streams (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+course_id INTEGER NOT NULL,
+number_stream INTEGER NOT NULL UNIQUE,
+started_at TEXT NOT NULL,
+howmany_students INTEGER NOT NULL, finished_at TEXT,
+FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+sqlite> INSERT INTO streams (course_id, number_stream, started_at, students_amount) VALUES
+   ...> (3, 165, '18.08.2020', 34),
+   ...> (2, 178, '02.10.2020', 37),
+   ...> (1, 203, '12.11.2020', 35),
+   ...> (1, 210, '03.12.2020', 41);
+sqlite> SELECT * FROM streams
+   ...> ;
+id          course_id   number_stream  started_at  students_amount  finished_at
+----------  ----------  -------------  ----------  ---------------  -----------
+1           3           165            18.08.2020  34                          
+2           2           178            02.10.2020  37                          
+3           1           203            12.11.2020  35                          
+4           1           210            03.12.2020  41                          
+sqlite> 
+sqlite> .schema achievements 
+CREATE TABLE achievements (
+teachers_id INTEGER NOT NULL,
+streams_id INTEGER NOT NULL,
+achievements REAL NOT NULL,
+PRIMARY KEY (teachers_id, streams_id),
+FOREIGN KEY (teachers_id) REFERENCES teachers(id),
+FOREIGN KEY (streams_id) REFERENCES streams(id)
+);
+sqlite> INSERT INTO achievements (teachers_id, streams_id, achievements) VALUES
+   ...> (3, 1, 4.7),
+   ...> (2, 2, 4.9),
+   ...> (1, 3, 4.8),
+   ...> (1, 4, 4.9);
+sqlite> SELECT * FROM achievements 
+   ...> ;
+teachers_id  streams_id  achievements
+-----------  ----------  ------------
+3            1           4.7         
+2            2           4.9         
+1            3           4.8         
+1            4           4.9    
